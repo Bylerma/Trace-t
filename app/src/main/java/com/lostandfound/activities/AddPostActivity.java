@@ -60,6 +60,16 @@ public class AddPostActivity extends AppCompatActivity {
                     result -> {
                         if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                             selectedImageUri = result.getData().getData();
+                            if (selectedImageUri != null) {
+                                try {
+                                    getContentResolver().takePersistableUriPermission(
+                                            selectedImageUri,
+                                            Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                    );
+                                } catch (Exception ignored) {
+                                    // URI permission may already be persistable or not supported
+                                }
+                            }
                             showImagePreview(selectedImageUri);
                         }
                     });
@@ -68,7 +78,7 @@ public class AddPostActivity extends AppCompatActivity {
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
                     result -> {
                         if (result.getResultCode() == RESULT_OK && cameraImageFile != null) {
-                            selectedImageUri = Uri.fromFile(cameraImageFile);
+                            selectedImageUri = ImageUtils.getUriForFile(AddPostActivity.this, cameraImageFile);
                             showImagePreview(selectedImageUri);
                         }
                     });
@@ -109,8 +119,11 @@ public class AddPostActivity extends AppCompatActivity {
         binding.btnStatusLost.setChecked(true);
         binding.toggleGroupStatus.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
             if (isChecked) {
-                if (checkedId == R.id.btnStatusLost)  selectedStatus = Constants.STATUS_LOST;
-                if (checkedId == R.id.btnStatusFound) selectedStatus = Constants.STATUS_FOUND;
+                if (checkedId == R.id.btnStatusLost) {
+                    selectedStatus = Constants.STATUS_LOST;
+                } else if (checkedId == R.id.btnStatusFound) {
+                    selectedStatus = Constants.STATUS_FOUND;
+                }
             }
         });
     }

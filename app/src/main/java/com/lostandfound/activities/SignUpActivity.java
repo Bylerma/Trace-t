@@ -109,9 +109,20 @@ public class SignUpActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> {
                     setLoading(false);
                     Log.e("SignUpActivity", "Firestore user save failed", e);
-                    Snackbar.make(binding.getRoot(),
+                    
+                    // If Firestore fails, we should delete the Auth user to allow them to retry
+                    if (firebase.getAuth().getCurrentUser() != null) {
+                        firebase.getAuth().getCurrentUser().delete()
+                            .addOnCompleteListener(task -> {
+                                Snackbar.make(binding.getRoot(),
+                                    "Profile setup failed. Please try again: " + e.getLocalizedMessage(),
+                                    Snackbar.LENGTH_LONG).show();
+                            });
+                    } else {
+                        Snackbar.make(binding.getRoot(),
                             "Account created but profile save failed: " + e.getLocalizedMessage(),
                             Snackbar.LENGTH_LONG).show();
+                    }
                 });
     }
 

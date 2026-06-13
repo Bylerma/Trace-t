@@ -93,6 +93,12 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
                     .circleCrop()
                     .into(binding.ivPosterAvatar);
 
+            binding.ivPosterAvatar.setOnClickListener(v -> {
+                if (context instanceof com.lostandfound.activities.MainActivity) {
+                    ((com.lostandfound.activities.MainActivity) context).navigateToProfile();
+                }
+            });
+
             binding.getRoot().setOnClickListener(v -> {
                 if (clickListener != null) clickListener.onItemClick(item);
             });

@@ -1,5 +1,6 @@
 package com.lostandfound.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -18,11 +19,13 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
+import com.lostandfound.activities.ItemDetailActivity;
 import com.lostandfound.R;
 import com.lostandfound.adapters.ItemAdapter;
 import com.lostandfound.databinding.FragmentHomeBinding;
 import com.lostandfound.models.Item;
 import com.lostandfound.utils.Constants;
+import com.lostandfound.utils.DummyDataUtils;
 import com.lostandfound.utils.FirebaseHelper;
 
 /**
@@ -58,8 +61,17 @@ public class HomeFragment extends Fragment {
         setupCategoryChips();
         setupSearch();
         setupSwipeRefresh();
+        setupProfileClick();
 
         attachFirestoreListener();
+    }
+
+    private void setupProfileClick() {
+        binding.ivProfile.setOnClickListener(v -> {
+            if (getActivity() instanceof com.lostandfound.activities.MainActivity) {
+                ((com.lostandfound.activities.MainActivity) getActivity()).navigateToProfile();
+            }
+        });
     }
 
     private void setGreeting() {
@@ -90,7 +102,9 @@ public class HomeFragment extends Fragment {
 
     private void setupRecyclerView() {
         adapter = new ItemAdapter(requireContext(), filteredItems, item -> {
-            // Navigate to detail screen (wire to ItemDetailActivity as needed)
+            Intent intent = ItemDetailActivity.createIntent(requireContext(), item.getItemId());
+            startActivity(intent);
+            requireActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         });
 
         StaggeredGridLayoutManager layoutManager =
@@ -125,6 +139,19 @@ public class HomeFragment extends Fragment {
                 if (item != null) allItems.add(item);
             }
 
+            if (allItems.isEmpty()) {
+                List<Item> dummyItems = DummyDataUtils.getDummyItems(FirebaseHelper.getInstance().getCurrentUserId());
+                if (activeStatusFilter.equals("All")) {
+                    allItems.addAll(dummyItems);
+                } else {
+                    for (Item item : dummyItems) {
+                        if (item.getStatus().equals(activeStatusFilter)) {
+                            allItems.add(item);
+                        }
+                    }
+                }
+            }
+
             applyClientSideFilters();
         });
     }
@@ -156,9 +183,15 @@ public class HomeFragment extends Fragment {
 
     private void setupStatusChips() {
         binding.chipGroupStatus.setOnCheckedStateChangeListener((group, checkedIds) -> {
-            if (checkedIds.contains(R.id.chipAll))   activeStatusFilter = "All";
-            if (checkedIds.contains(R.id.chipLost))  activeStatusFilter = "Lost";
-            if (checkedIds.contains(R.id.chipFound)) activeStatusFilter = "Found";
+            if (checkedIds.isEmpty()) {
+                binding.chipAll.setChecked(true);
+                activeStatusFilter = "All";
+            } else {
+                int checkedId = checkedIds.get(0);
+                if (checkedId == R.id.chipAll)   activeStatusFilter = "All";
+                else if (checkedId == R.id.chipLost)  activeStatusFilter = "Lost";
+                else if (checkedId == R.id.chipFound) activeStatusFilter = "Found";
+            }
             attachFirestoreListener();
         });
     }

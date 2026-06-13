@@ -46,6 +46,11 @@ public class ChatActivity extends AppCompatActivity {
         otherUserId = getIntent().getStringExtra(Constants.EXTRA_USER_ID);
         String otherUserName = getIntent().getStringExtra(Constants.EXTRA_USER_NAME);
 
+        if (chatId == null || otherUserId == null) {
+            finish();
+            return;
+        }
+
         binding.toolbarChat.setTitle(otherUserName != null ? otherUserName : "Chat");
         binding.toolbarChat.setNavigationOnClickListener(v -> finish());
 

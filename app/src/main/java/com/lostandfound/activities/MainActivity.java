@@ -93,4 +93,8 @@ public class MainActivity extends AppCompatActivity {
 
     public void showFab() { binding.fab.show(); }
     public void hideFab() { binding.fab.hide(); }
+
+    public void navigateToProfile() {
+        binding.bottomNav.setSelectedItemId(R.id.nav_profile);
+    }
 }

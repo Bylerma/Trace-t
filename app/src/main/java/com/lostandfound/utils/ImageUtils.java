@@ -28,7 +28,7 @@ public class ImageUtils {
     public static Uri getUriForFile(Context context, File file) {
         return FileProvider.getUriForFile(
                 context,
-                context.getPackageName() + ".fileprovider",
+                "com.trinoka.traceit.fileprovider",
                 file
         );
     }

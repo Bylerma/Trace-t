@@ -1,5 +1,6 @@
 package com.lostandfound.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,7 +13,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.firestore.Query;
+import com.lostandfound.R;
 import com.lostandfound.adapters.ItemAdapter;
+import com.lostandfound.utils.DummyDataUtils;
+import com.lostandfound.activities.ItemDetailActivity;
 import com.lostandfound.models.Item;
 import com.lostandfound.utils.Constants;
 import com.lostandfound.utils.FirebaseHelper;
@@ -43,7 +47,11 @@ public class MyPostsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        adapter = new ItemAdapter(requireContext(), posts, item -> { /* navigate to detail */ });
+        adapter = new ItemAdapter(requireContext(), posts, item -> {
+            Intent intent = ItemDetailActivity.createIntent(requireContext(), item.getItemId());
+            startActivity(intent);
+            requireActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+        });
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerView.setAdapter(adapter);
         loadPosts();
@@ -65,6 +73,13 @@ public class MyPostsFragment extends Fragment {
                         Item item = doc.toObject(Item.class);
                         if (item != null) posts.add(item);
                     }
+
+                    if (posts.isEmpty()) {
+                        for (Item dummy : DummyDataUtils.getDummyItems(uid)) {
+                            if (uid.equals(dummy.getUserId())) posts.add(dummy);
+                        }
+                    }
+
                     adapter.notifyDataSetChanged();
                 });
     }

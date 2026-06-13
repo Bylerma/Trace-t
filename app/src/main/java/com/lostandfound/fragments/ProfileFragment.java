@@ -20,7 +20,9 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.Query;
 import com.lostandfound.R;
 import com.lostandfound.activities.LoginActivity;
+import com.lostandfound.activities.ItemDetailActivity;
 import com.lostandfound.adapters.ItemAdapter;
+import com.lostandfound.utils.DummyDataUtils;
 import com.lostandfound.databinding.FragmentProfileBinding;
 import com.lostandfound.models.Item;
 import com.lostandfound.utils.Constants;
@@ -90,10 +92,15 @@ public class ProfileFragment extends Fragment {
                 });
 
         loadUserPosts(false);
+        loadUserPosts(true);
     }
 
     private void setupRecyclerView() {
-        adapter = new ItemAdapter(requireContext(), userPosts, item -> { /* detail */ });
+        adapter = new ItemAdapter(requireContext(), userPosts, item -> {
+            Intent intent = ItemDetailActivity.createIntent(requireContext(), item.getItemId());
+            startActivity(intent);
+            requireActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+        });
         binding.recyclerUserPosts.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.recyclerUserPosts.setAdapter(adapter);
     }
@@ -129,6 +136,16 @@ public class ProfileFragment extends Fragment {
                         Item item = doc.toObject(Item.class);
                         if (item != null) { userPosts.add(item); count++; }
                     }
+
+                    if (userPosts.isEmpty()) {
+                        for (Item dummy : DummyDataUtils.getDummyItems(uid)) {
+                            if (uid.equals(dummy.getUserId()) && dummy.isResolved() == resolved) {
+                                userPosts.add(dummy);
+                                count++;
+                            }
+                        }
+                    }
+
                     adapter.notifyDataSetChanged();
 
                     if (resolved) binding.tvResolvedCount.setText(String.valueOf(count));
